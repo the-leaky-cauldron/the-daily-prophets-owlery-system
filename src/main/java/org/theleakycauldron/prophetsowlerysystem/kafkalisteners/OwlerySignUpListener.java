@@ -1,10 +1,10 @@
 package org.theleakycauldron.prophetsowlerysystem.kafkalisteners;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.theleakycauldron.prophetsowlerysystem.dtos.SignUpEmailDto;
+import org.theleakycauldron.prophetsowlerysystem.services.OwleryEmailService;
 
 /**
  * @author: Vijaysurya Mandala
@@ -14,13 +14,24 @@ import org.theleakycauldron.prophetsowlerysystem.dtos.SignUpEmailDto;
 @Service
 public class OwlerySignUpListener {
 
+    private final static String SIGNUP_EMAIL_SUBJECT = "Signup confirmation";
+    private final OwleryEmailService emailService;
 
-    @KafkaListener(topics = "user-signup-email", id = "owlery")
-    public void listen(ConsumerRecord<String, SignUpEmailDto> dto){
-        System.out.println(dto.value());
+    public OwlerySignUpListener(
+        OwleryEmailService emailService
+    ) {
+        this.emailService = emailService;
     }
 
-    public void sendEmail(SignUpEmailDto dto){
-        // TODO: Add logic and config for this method
+    @KafkaListener(topics = "user-signup-email", id = "owlery-signup")
+    public void listen(ConsumerRecord<String, SignUpEmailDto> dto){
+        sendEmail(dto.value());
+    }
+
+    private void sendEmail(SignUpEmailDto dto){
+
+        String body = "Hey " + dto.getName() + " Thanks for signing up for DiagonAlley. Your account has been activated!";
+        emailService.sendEmail(dto.getEmail(), SIGNUP_EMAIL_SUBJECT, body);
+
     }
 }
